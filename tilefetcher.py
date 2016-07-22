@@ -64,6 +64,7 @@ def fetch_process(start, end, host):
 
 
 def fetch_thread(start, end, host):
+    url = None
     page_size = 20
     while start < end:
         try:
@@ -80,7 +81,6 @@ def fetch_thread(start, end, host):
                 with open(save_path, 'wb') as f_out:
                     f_out.write(f_in.read())
 
-                del url
                 del save_path
                 del f_in
 
@@ -88,8 +88,7 @@ def fetch_thread(start, end, host):
             del page_end
             del rs
         except Exception, e:
-            print e
-            break
+            print 'failed to download: %s\nerror: %s' % (url, e)
 
 
 def reset_fetcher():
