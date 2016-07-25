@@ -16,7 +16,8 @@ def get_slice(start, end):
     conn = sqlite3.connect(SLICES_DB_PATH)
     cur = conn.cursor()
     try:
-        sql = 'SELECT x, y, z FROM slices WHERE ROWID>=%d AND ROWID<%d;' % (start, end)
+        # start begin from 0, but rowid begin from 1
+        sql = 'SELECT x, y, z FROM slices WHERE ROWID>=%d AND ROWID<%d;' % (start+1, end+1)
         cur.execute(sql)
         rs = cur.fetchall()
     except Exception, e:

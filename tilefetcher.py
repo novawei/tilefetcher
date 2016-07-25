@@ -17,6 +17,7 @@ HOSTS = ["http://online0.map.bdimg.com/tile/",
          "http://online2.map.bdimg.com/tile/",
          "http://online3.map.bdimg.com/tile/",
          "http://online4.map.bdimg.com/tile/"]
+DEFAULT_PAGE_SIZE = 20 
 
 
 def get_tile_url(host, x, y, z):
@@ -47,16 +48,19 @@ def get_save_path(x, y, z):
 
 def fetch_process(start, end, host):
     thread_count = 5
-    page_size = (end-start)/thread_count
-    page_start = start
-
     threads = []
+
+    page_size = (end-start)/thread_count
+    if page_size <= 0:
+        page_size = DEFAULT_PAGE_SIZE
+    page_start = start
 
     for i in xrange(0, thread_count):
         page_end = min(page_start+page_size, end)
-        t = threading.Thread(target=fetch_thread, args=(page_start, page_end, host))
-        t.start()
-        threads.append(t)
+        if page_start < page_end:
+            t = threading.Thread(target=fetch_thread, args=(page_start, page_end, host))
+            t.start()
+            threads.append(t)
         page_start += page_size
 
     for t in threads:
@@ -65,10 +69,9 @@ def fetch_process(start, end, host):
 
 def fetch_thread(start, end, host):
     url = None
-    page_size = 20
     while start < end:
         try:
-            page_end = min(start+page_size, end)
+            page_end = min(start+DEFAULT_PAGE_SIZE, end)
             rs = tileslicer.get_slice(start, page_end)
             for x, y, z in rs:
                 url = get_tile_url(host, x, y, z)
@@ -76,7 +79,6 @@ def fetch_thread(start, end, host):
                 if os.path.exists(save_path):
                     os.remove(save_path)
 
-                # print '*',
                 f_in = urllib2.urlopen(url)
                 with open(save_path, 'wb') as f_out:
                     f_out.write(f_in.read())
@@ -84,7 +86,7 @@ def fetch_thread(start, end, host):
                 del save_path
                 del f_in
 
-            start += page_size
+            start += DEFAULT_PAGE_SIZE
             del page_end
             del rs
         except Exception, e:
@@ -98,18 +100,23 @@ def reset_fetcher():
 def start_fetch(tile_count):
     host_count = len(HOSTS)
     proc_count = host_count
+    
     page_size = tile_count/proc_count
+    if page_size <= 0:
+        page_size = DEFAULT_PAGE_SIZE
     start = 0
+
     for i in xrange(0, proc_count):
-        end = min(start+page_size, tile_count)
         host = HOSTS[i % host_count]
-        if platform.system() == 'Darwin':
-            # mac os crash if multiprocessing is used, currently using threading instead
-            t = threading.Thread(target=fetch_thread, args=(start, end, host))
-            t.start()
-        else:
-            proc = multiprocessing.Process(target=fetch_process, args=(start, end, host))
-            proc.start()
+        end = min(start+page_size, tile_count)
+        if start < end:
+            if platform.system() == 'Darwin':
+                # mac os crash if multiprocessing is used, currently using threading instead
+                t = threading.Thread(target=fetch_thread, args=(start, end, host))
+                t.start()
+            else:
+                proc = multiprocessing.Process(target=fetch_process, args=(start, end, host))
+                proc.start()
         start += page_size
 
 
@@ -141,5 +148,5 @@ if __name__ == '__main__':
     ShanDong Province
     {"lng":114.467361,"lat":34.127447}, {"lng":122.985309,"lat":38.125886}
     '''
-    fetch_tiles_z(114.467361, 34.127447, 122.985309, 38.125886, 10)
+    fetch_tiles(120.376918, 36.112958, 120.44792, 36.181971, 3, 19)
 
