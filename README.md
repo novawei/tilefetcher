@@ -1,5 +1,9 @@
 # tilefetcher
-fetch baidu map tiles
+fetch baidu map tiles.
+test on python2.7 and windows7.
+
+## Issuse
+1. syntax error on python3. change `except Exception, e:` to `except Exception as e:` in `tilefetcher.py`[line 92]
 
 ## Usage
 ``` python
