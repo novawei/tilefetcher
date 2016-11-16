@@ -3,7 +3,8 @@ fetch baidu map tiles.
 test on python2.7 and windows7.
 
 ## python3 issues
-1. syntax error on python3. change `except Exception, e:` to `except Exception as e:` in `tilefetcher.py`[line 92]
+1. `try except` syntax error on python3. 
+change all `except Exception, e:` to `except Exception as e:` 
 
 ## usage
 ``` python
